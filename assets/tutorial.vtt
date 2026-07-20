@@ -1,0 +1,166 @@
+WEBVTT
+
+1
+00:00:00.600 --> 00:00:12.624
+Let's understand E2E-Merge — a simple idea for combining many fine-tuned models into one, with no retraining. We'll build it up from scratch, assuming no background.
+
+2
+00:00:12.964 --> 00:00:20.164
+The whole shift is this: stop asking how to combine their weights, and start asking what the combined model should do.
+
+3
+00:00:20.914 --> 00:00:34.378
+Start with a common situation. You take one pre-trained model and fine-tune it separately for many tasks — one expert for everyday photos, one for satellite images, one for digits, and so on.
+
+4
+00:00:34.718 --> 00:00:45.806
+Crucially, they all started from the same pre-trained model — they only drifted apart during fine-tuning. That shared origin is what makes merging thinkable at all.
+
+5
+00:00:46.146 --> 00:00:58.674
+Now you have a whole zoo of models — one per task. Serving them all is expensive, and you often can't just retrain a single model on everything, because each task's data is private or gone.
+
+6
+00:00:59.014 --> 00:01:09.622
+Model merging is the shortcut: fold all those experts back into a single model — no data, no retraining — that can do every task at once.
+
+7
+00:01:10.372 --> 00:01:19.708
+The simplest recipe is to just average the models — or add up their task vectors, the change each fine-tuning made to the weights.
+
+8
+00:01:20.048 --> 00:01:30.128
+But when you do, something frustrating happens: the tasks fight each other. Every task loses accuracy. This is called interference.
+
+9
+00:01:30.468 --> 00:01:38.340
+It's like overlaying several people's edits to the same document — the changes collide, and the result serves no one well.
+
+10
+00:01:39.090 --> 00:01:47.826
+For years, the field treated this as a puzzle about weights: how do we combine these parameter vectors so they conflict less?
+
+11
+00:01:48.166 --> 00:01:57.166
+E2E-Merge argues that weights are the wrong thing to look at. What we actually care about is the model's behavior — its function.
+
+12
+00:01:57.506 --> 00:02:05.690
+The real damage isn't that the weights disagree; it's that the merged model's outputs drift away from what each expert would have produced.
+
+13
+00:02:06.440 --> 00:02:13.880
+So the idea is simple: instead of combining weights, make the merged model behave like each expert.
+
+14
+00:02:14.220 --> 00:02:25.500
+For every task, take that task's own inputs, and adjust the merged model so its internal representation matches what the expert produced on those same inputs.
+
+15
+00:02:25.840 --> 00:02:35.632
+No labels are needed — the target is the expert's own output. You're not teaching the model the answers; you're teaching it to imitate the specialists.
+
+16
+00:02:35.972 --> 00:02:43.028
+Do this for every task at once, and you get a single model pulled toward all of the experts simultaneously.
+
+17
+00:02:43.778 --> 00:02:49.466
+Here's the elegant part. This one objective quietly explains the entire field.
+
+18
+00:02:49.806 --> 00:02:58.638
+The strongest existing method — regression-based merging — turns out to be just a local, layer-by-layer approximation of this exact goal.
+
+19
+00:02:58.978 --> 00:03:07.642
+Fisher merging is a cruder version of it; plain averaging ignores it entirely. They are all shadows of the same objective.
+
+20
+00:03:07.982 --> 00:03:21.494
+You can see it as a ladder: ignore the geometry and you get averaging; use a crude version and you get Fisher; use a per-layer approximation and you get regression merging; use the exact thing — and you get this.
+
+21
+00:03:21.834 --> 00:03:30.090
+So instead of inventing yet another weight trick, E2E-Merge just optimizes the real objective directly, end to end.
+
+22
+00:03:30.840 --> 00:03:35.616
+How? With ordinary gradient descent, but in an unusual setup.
+
+23
+00:03:35.956 --> 00:03:48.292
+Start from a quick approximate merge. Then, step by step, sample a task, draw a fresh batch of its inputs, and nudge the merged model to reproduce that frozen expert's representation.
+
+24
+00:03:48.632 --> 00:03:59.672
+The experts never change — they're the teachers. A fresh batch every step means the model learns the whole task, not a fixed sample. And it uses no labels at all.
+
+25
+00:04:00.012 --> 00:04:07.476
+It's also memory-friendly: you can merge the network block by block, so even a large model fits on a modest GPU.
+
+26
+00:04:08.226 --> 00:04:13.818
+So does it work? Take eight image tasks, merged into one vision model.
+
+27
+00:04:14.158 --> 00:04:31.246
+The best previous method reaches about 91 percent. E2E-Merge reaches 94.3 — essentially the accuracy of the eight separately fine-tuned models. It recovers 99.9 percent of their performance.
+
+28
+00:04:31.586 --> 00:04:34.922
+One model, as good as the eight it replaces.
+
+29
+00:04:35.262 --> 00:04:43.686
+And the pattern holds across model sizes — on a smaller vision model the jump is even larger, from 84 up to 90.
+
+30
+00:04:44.436 --> 00:04:56.484
+It gets better exactly where merging is hardest. Push from eight tasks to twenty, and E2E-Merge beats the best baseline by nine and a half points.
+
+31
+00:04:56.824 --> 00:05:06.184
+The margin widens the more tasks you merge — because more tasks means more interference, and that is precisely what this method controls.
+
+32
+00:05:06.524 --> 00:05:22.340
+Why does end-to-end matter? Because small errors at each layer compound through depth. Two methods can look equally good layer by layer, yet one ends up more than twice as far from the expert at the output. Only an end-to-end objective sees that.
+
+33
+00:05:23.090 --> 00:05:32.930
+For all that, it's cheap. Merging eight tasks on a large vision model takes about thirteen minutes on a single GPU — done once, offline.
+
+34
+00:05:33.270 --> 00:05:39.870
+The heavy computation is a one-time offline cost; at deployment there is nothing extra to pay.
+
+35
+00:05:40.210 --> 00:05:47.698
+And what you ship is just one model — the same size and cost as any other merged model, but far more accurate.
+
+36
+00:05:48.448 --> 00:06:00.352
+The method is honest about its scope. Most results are on vision models; a language experiment shows the idea carries over, and broader tests are the natural next step.
+
+37
+00:06:00.692 --> 00:06:11.180
+And it doesn't discard the past — it completes it. The best prior methods were approximating this objective all along; E2E-Merge just goes the rest of the way.
+
+38
+00:06:11.930 --> 00:06:17.282
+So the lesson is a change of question. A good merge isn't about tidying up weights.
+
+39
+00:06:17.622 --> 00:06:22.446
+It's about behavior: the merged model should do what each expert would have done.
+
+40
+00:06:22.786 --> 00:06:30.898
+Match functions, not weights — and one model can quietly become as capable as the many it replaces.
+
+41
+00:06:31.238 --> 00:06:38.942
+The project page, this tutorial, and the code and paper — coming soon — are linked on screen. Thanks for watching.
+

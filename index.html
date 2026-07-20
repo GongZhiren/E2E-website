@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>E2E-Merge | Project Website</title>
+  <meta name="description" content="Merging Models by Matching Functions (E2E-Merge): merge fine-tuned models so the merged model reproduces each expert's function — recovering near fine-tuned accuracy.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <header class="topbar">
+    <div class="container nav">
+      <a class="brand" href="#top">
+        <span class="brand-dot"></span>
+        <span>E2E-Merge</span>
+      </a>
+      <nav>
+        <a href="#abstract">Abstract</a>
+        <a href="#problem">Problem</a>
+        <a href="#method">Method</a>
+        <a href="#results">Results</a>
+        <a href="#analysis">Analysis</a>
+        <a href="#efficiency">Efficiency</a>
+        <a href="tutorial.html">Tutorial</a>
+      </nav>
+      <a class="btn btn-soft btn-sm" href="#resources">Resources</a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero container">
+      <div class="hero-copy">
+        <p class="pill">Under Review · Model Merging</p>
+        <h1>Merging Models<br>by Matching Functions</h1>
+        <p class="subtitle">
+          Stop asking <em>how to combine weights</em>. Merge fine-tuned models so that, on each task's own inputs,
+          the merged model <strong>reproduces that expert's function</strong> — and recover almost all of the
+          accuracy of the individual models it replaces.
+        </p>
+        <div class="author-hero">
+          <p class="author-hero-names">
+            Zhiren Gong, Tiantong Wang, Zihao Zeng, Yiyang Duan, Chau Yuen, Wei Yang Bryan Lim
+          </p>
+          <p class="author-hero-affils">
+            <span>College of Computing and Data Science, Nanyang Technological University</span>
+          </p>
+        </div>
+        <p class="hero-highlight">
+          One merged model, as accurate as the 8 experts it replaces: <strong>94.3%</strong> on ViT-L/14 —
+          <strong>99.9%</strong> of fully fine-tuned accuracy — and <strong>+9.5 points</strong> over the best prior
+          method when merging <strong>20</strong> tasks.
+        </p>
+        <div class="cta">
+          <span class="btn btn-soft" style="opacity:.6;cursor:default">Paper · coming soon</span>
+          <span class="btn btn-soft" style="opacity:.6;cursor:default">Code · coming soon</span>
+          <a class="btn" href="tutorial.html">▶ Tutorial</a>
+        </div>
+      </div>
+      <figure class="card figure-card hero-figure">
+        <img class="hero-radar-img" src="./assets/fig_main.png" alt="Average merged accuracy across backbones and task counts" data-full="./assets/fig_main.png" loading="eager">
+        <figcaption>Figure. Average merged accuracy — E2E-Merge (red) leads on every backbone and every task count.</figcaption>
+      </figure>
+    </section>
+
+    <section class="container metrics">
+      <article><h3>3 backbones · 20 tasks</h3><p>ViT-B/32 · B/16 · L/14, up to 20-task merges</p></article>
+      <article><h3>99.6–99.9%</h3><p>Of fully fine-tuned accuracy recovered</p></article>
+      <article><h3>+9.5</h3><p>Points over the best baseline at 20 tasks</p></article>
+      <article><h3>label-free</h3><p>Match representations, never labels</p></article>
+      <article><h3>~13 min</h3><p>One GPU, one-time offline merge (ViT-L/14)</p></article>
+    </section>
+
+    <section id="abstract" class="container section">
+      <h2>Abstract</h2>
+      <article class="card">
+        <p>
+          Model merging folds several models fine-tuned from a shared checkpoint into a <strong>single</strong>
+          multi-task model — no original data, no joint retraining. But naively combining weights (averaging,
+          task arithmetic) causes <strong>interference</strong>: every task loses accuracy.
+        </p>
+        <p>
+          We reframe merging as a <strong>functional</strong> objective: on each task's unlabeled inputs, make the
+          merged model's representation match that task's expert. This turns merging from "how to combine weights"
+          into "what the merged model should <em>do</em>". <strong>E2E-Merge</strong> optimizes this end-to-end.
+        </p>
+        <p>
+          The theory unifies the field: the strongest closed-form mergers (RegMean / RegMean++) are exactly the
+          <strong>local, layer-wise approximation</strong> of this objective; Fisher merging is its diagonal analogue;
+          averaging ignores the geometry entirely. Optimizing the objective directly closes the gap they leave —
+          recovering up to <strong>99.9%</strong> of fine-tuned accuracy and widening its lead as tasks grow.
+        </p>
+      </article>
+    </section>
+
+    <section id="problem" class="container section">
+      <h2>The Problem · Interference</h2>
+      <div class="grid2">
+        <article class="card">
+          <h3>Why merge at all?</h3>
+          <p>
+            Hubs host thousands of experts — one model per task. Serving a separate network per task is expensive;
+            folding them back by retraining needs every task's data at once, which is often private or gone. Merging
+            removes both costs — <em>if</em> it can be done without losing accuracy.
+          </p>
+          <h3>Weights aren't the right unit</h3>
+          <p>
+            Task vectors <span class="mono">τ_a = θ_a − θ₀</span> conflict when summed, so each task degrades. The real
+            damage is <strong>functional</strong>: the merged model's outputs drift from each expert's — concentrated
+            in the output-relevant directions that per-layer weight surrogates cannot see.
+          </p>
+        </article>
+        <figure class="card figure-card">
+          <img class="pipeline-hero-img" src="./assets/fig_compound.png" alt="Per-layer error compounds; end-to-end residual differs" data-full="./assets/fig_compound.png" loading="lazy">
+          <figcaption>Figure. Per-layer error looks nearly identical across methods — yet the end-to-end residual differs 2.4×, and it orders methods exactly as accuracy does.</figcaption>
+        </figure>
+      </div>
+      <article class="card dual-insight">
+        <h3>The insight: match functions, not weights</h3>
+        <p>
+          A good merge should <strong>behave</strong> like the experts it replaces. So optimize the discrepancy between
+          the merged model's function and each expert's function directly — end-to-end, where interference actually lives.
+        </p>
+      </article>
+    </section>
+
+    <section id="method" class="container section">
+      <h2>Method</h2>
+      <article class="card">
+        <h3>A single functional objective</h3>
+        <p>
+          For merged encoder <span class="mono">g_θ</span> and experts <span class="mono">g_{θₐ}</span>, minimize the
+          representation discrepancy on each task's own inputs:
+        </p>
+        <div class="glass mono" style="padding:16px 24px;font-size:1.05rem;color:#cfe4ff;margin:6px 0 8px;text-align:center;border-radius:14px;border:1px solid var(--line);">
+          min<sub>θ</sub> &nbsp; Σ<sub>a</sub> &nbsp; E<sub>x∼D<sub>a</sub></sub> &nbsp; ‖ g<sub>θ</sub>(x) − g<sub>θ<sub>a</sub></sub>(x) ‖²
+        </div>
+        <p>
+          No labels — the target is the teacher's representation. "Matching functions" means optimizing what the merged
+          model <em>computes</em>, not what its weights look like.
+        </p>
+        <div class="grid2">
+          <div>
+            <h3>The unifying theory</h3>
+            <ul>
+              <li><strong>RegMean / RegMean++</strong> = the local, first-order, layer-wise approximation of this objective.</li>
+              <li><strong>Fisher merging</strong> = its diagonal-metric analogue; <strong>Averaging / Task Arithmetic</strong> ignore the metric.</li>
+              <li>All are degenerate special cases of the one objective E2E-Merge optimizes <em>globally</em>.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>How E2E-Merge optimizes it</h3>
+            <ul>
+              <li>Start from a task-arithmetic init (<span class="mono">θ₀ + α·Στₐ</span>, α=0.3); teachers frozen (stop-gradient).</li>
+              <li>Each step: sample a task, a <strong>fresh</strong> minibatch, and match the expert's representation.</li>
+              <li>Streaming batches track the full task distribution; AdamW + gradient clipping, label-free.</li>
+            </ul>
+          </div>
+        </div>
+        <h3>Bounded-memory variant</h3>
+        <ul>
+          <li>Merge transformer blocks group-by-group from the input side, feeding each group the merged network's real activations.</li>
+          <li>Peak activation memory = one group's — <strong>13 vs 31 GB</strong> on ViT-L/14 — and even a single-block group already beats RegMean++.</li>
+        </ul>
+      </article>
+
+      <div class="grid3 method-flow">
+        <article class="card">
+          <h3>Step 1 · Init</h3>
+          <p>Warm-start from task arithmetic (θ₀ + 0.3·Σ task vectors) — a good, fast starting point.</p>
+          <p class="note">Output: a merged model near the experts, ready to refine.</p>
+        </article>
+        <article class="card">
+          <h3>Step 2 · Match</h3>
+          <p>Stream fresh minibatches per task; make the merged model reproduce each frozen expert's representation.</p>
+          <p class="note">Output: end-to-end functional agreement, no labels used.</p>
+        </article>
+        <article class="card">
+          <h3>Step 3 · Ship</h3>
+          <p>A single merged model — one network that behaves like all the experts it replaces.</p>
+          <p class="note">Result: near fine-tuned accuracy at one model's cost.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="results" class="container section">
+      <h2>Main Results</h2>
+      <div class="grid3">
+        <article class="card stat-card">
+          <h3>ViT-L/14 · 8 tasks</h3>
+          <p><strong>94.3%</strong> merged accuracy</p>
+          <p>= the fully fine-tuned reference (99.9% normalized); best baseline 90.9.</p>
+        </article>
+        <article class="card stat-card">
+          <h3>ViT-L/14 · 20 tasks</h3>
+          <p><strong>92.9%</strong> — <strong>+9.5</strong> over best baseline</p>
+          <p>Best on 19 of 20 tasks; the advantage grows with task count.</p>
+        </article>
+        <article class="card stat-card">
+          <h3>Recovery</h3>
+          <p><strong>99.6–99.9%</strong> of fine-tuned accuracy</p>
+          <p>Across three backbones — vs 92.9–96.2% for the strongest prior method.</p>
+        </article>
+      </div>
+
+      <article class="card full-width-table-card">
+        <h3>Merged Accuracy (%) — FusionBench, same harness for every method</h3>
+        <p class="scroll-hint">Hint: scroll horizontally to view all columns on smaller screens.</p>
+        <div class="table-scroll">
+          <table class="wide-table compact">
+            <thead>
+              <tr><th>Method</th><th>ViT-B/32 (8)</th><th>ViT-B/16 (8)</th><th>ViT-L/14 (8)</th><th>ViT-L/14 (20)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Task Arithmetic</td><td>67.6</td><td>77.1</td><td>80.5</td><td>36.0</td></tr>
+              <tr><td>Fisher Merging</td><td>70.3</td><td>—</td><td>72.4</td><td>70.2</td></tr>
+              <tr><td>Iso-C</td><td>80.4</td><td>85.1</td><td>90.7</td><td>83.4</td></tr>
+              <tr><td>TSV-M</td><td>83.1</td><td>87.1</td><td>90.6</td><td>83.2</td></tr>
+              <tr><td>RegMean++</td><td>84.2</td><td>87.3</td><td>90.9</td><td>82.2</td></tr>
+              <tr><td><strong>E2E-Merge</strong></td><td><strong>90.2</strong></td><td><strong>92.0</strong></td><td><strong>94.3</strong></td><td><strong>92.9</strong></td></tr>
+              <tr><td>Individual fine-tuned</td><td>90.4</td><td>—</td><td>94.3</td><td>—</td></tr>
+              <tr><td>Gain vs best baseline</td><td><strong>+6.0</strong></td><td><strong>+4.7</strong></td><td><strong>+3.4</strong></td><td><strong>+9.5</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <div class="grid2">
+        <figure class="card figure-card">
+          <img src="./assets/fig_pertask.png" alt="Per-task accuracy: E2E-Merge vs RegMean++ on ViT-L/14" data-full="./assets/fig_pertask.png" loading="lazy">
+          <figcaption>Figure. Per-task accuracy on ViT-L/14 (8 tasks) — E2E-Merge wins on every task, most on the hardest ones.</figcaption>
+        </figure>
+        <article class="card">
+          <h3>Reading the results</h3>
+          <ul>
+            <li>A single merged model reaches the <strong>individual fine-tuned</strong> accuracy — 94.3 = 94.3 on ViT-L/14.</li>
+            <li>The margin over the best baseline <strong>widens with task count</strong>: +2.6 (2 tasks) → +6.0 (8) → +13.7 (20).</li>
+            <li>It also grows as the backbone weakens — the advantage tracks <strong>interference</strong>, not model scale.</li>
+            <li>Held-out tasks: leads on seen tasks with no trade-off on unseen ones.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="analysis" class="container section">
+      <h2>Why It Works</h2>
+      <div class="grid2">
+        <article class="card">
+          <h3>Per-layer optimality ≠ end-to-end optimality</h3>
+          <p>
+            RegMean++ and E2E-Merge have almost identical <em>per-layer</em> residuals — yet their <strong>end-to-end</strong>
+            residuals differ 2.4× (<span class="mono">0.23 vs 0.55</span>, vs 0.83 for task arithmetic), and that ordering
+            matches accuracy exactly (90.2 &gt; 84.2 &gt; 67.6). Small per-layer errors <strong>compound</strong> through depth;
+            only an end-to-end objective controls what actually reaches the output.
+          </p>
+        </article>
+        <article class="card">
+          <h3>The induced-metric ladder</h3>
+          <p>On ViT-B/32 (8 tasks), each step toward the exact functional objective adds accuracy:</p>
+          <div class="table-scroll">
+            <table class="wide-table compact">
+              <thead><tr><th>No metric</th><th>Diagonal</th><th>Per-layer isotropic</th><th>Exact metric</th><th>E2E-Merge</th></tr></thead>
+              <tbody>
+                <tr><td>TA 67.6</td><td>Fisher 70.3</td><td>RegMean++ 84.2</td><td>GN 86.9</td><td><strong>90.2</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="note">The exact metric buys +2.7 over isotropic RegMean; re-evaluating the nonlinearity end-to-end buys a further +3.3.</p>
+        </article>
+      </div>
+      <div class="grid2">
+        <figure class="card figure-card">
+          <img src="./assets/fig_scaling.png" alt="Accuracy vs number of merged tasks" data-full="./assets/fig_scaling.png" loading="lazy">
+          <figcaption>Figure. As more tasks are merged, the E2E-Merge margin over RegMean++ widens — winning most where interference is worst.</figcaption>
+        </figure>
+        <article class="card">
+          <h3>What matters (ablations)</h3>
+          <ul>
+            <li><strong>Representations &gt; logits</strong>: matching the embedding beats distilling logits by 2.5 points.</li>
+            <li><strong>Reaching the optimum matters</strong>: anchoring to the init hurts (−4.2) — the gain is the end-to-end solution, not staying near start.</li>
+            <li><strong>Data-efficient</strong>: at RegMean's own 256-sample budget it already leads by +1.7.</li>
+            <li>Learning rate is the only sensitive knob; accuracy rises with steps and saturates (no overfitting).</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="efficiency" class="container section">
+      <h2>Efficiency & Scope</h2>
+      <div class="grid2">
+        <article class="card">
+          <h3>A one-time, offline merge</h3>
+          <ul>
+            <li>~<strong>13 minutes</strong> on a single GPU to merge 8 tasks on ViT-L/14 — done once, offline.</li>
+            <li>Deployment cost is a <strong>single model</strong>, identical to any other merged model.</li>
+            <li>Bounded-memory block-wise variant: <strong>13 vs 31 GB</strong> on ViT-L/14, still above every baseline.</li>
+            <li>Needs only unlabeled task inputs — heavier than closed-form RegMean, far cheaper than joint training.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Honest scope</h3>
+          <ul>
+            <li>Main evaluation is CLIP vision; a Flan-T5 GLUE probe shows the objective <strong>transfers beyond vision</strong> — broader language / multi-modal study is the natural next step.</li>
+            <li>The method completes prior work rather than breaking with it: RegMean is a layer-wise approximation of the same objective.</li>
+            <li>Requires a one-time gradient pass over unlabeled inputs (not a pure closed form).</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="resources" class="container section">
+      <h2>Resources</h2>
+      <div class="grid3">
+        <article class="card resource-card">
+          <h3>Paper</h3>
+          <p>Under review. <strong>Coming soon.</strong></p>
+        </article>
+        <article class="card resource-card">
+          <h3>Code</h3>
+          <p>Reference implementation and reproduction. <strong>Coming soon.</strong></p>
+        </article>
+        <article class="card resource-card">
+          <h3>Tutorial</h3>
+          <p>
+            A narrated, animated <a href="tutorial.html">~7-minute video tour</a> — interference, the functional
+            objective, and the results, built for a general audience.
+          </p>
+        </article>
+      </div>
+
+      <article class="card contact-card">
+        <h3>Contact</h3>
+        <p>
+          For questions about this project, contact
+          <a class="contact-link" href="mailto:zhiren001@e.ntu.edu.sg">zhiren001@e.ntu.edu.sg</a>.
+        </p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>E2E-Merge · Merging Models by Matching Functions · official project page.</p>
+    </div>
+  </footer>
+
+  <div id="lightbox" class="lightbox" aria-hidden="true">
+    <button id="lightboxClose" class="lightbox-close" type="button" aria-label="Close image view">×</button>
+    <img id="lightboxImg" src="" alt="Expanded figure preview">
+  </div>
+
+  <script src="./script.js"></script>
+</body>
+</html>
