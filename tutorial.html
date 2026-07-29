@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tutorial · E2E-Merge</title>
-  <meta name="description" content="A narrated, animated ~7-minute video tutorial on E2E-Merge: merging models by matching functions.">
+  <meta name="description" content="A narrated, animated ~7-minute video tutorial on E2E-Merge: model consolidation under budget — closed-form merging vs end-to-end distillation.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
@@ -55,9 +55,9 @@
     <section class="hero tut-hero container" style="display:block;">
       <p class="pill">Video tutorial · ~7 minutes · narrated &amp; subtitled</p>
       <h1>A guided tour of <span style="background:linear-gradient(120deg,#57dbff,#8fcbff);-webkit-background-clip:text;background-clip:text;color:transparent;">E2E-Merge</span></h1>
-      <p class="subtitle">Interference, the functional objective, and the results — built from the ground up for a
-        general audience: why combining weights fails, and how matching what each expert <em>does</em> merges many
-        models into one, with no labels.</p>
+      <p class="subtitle">Two regimes, one shared objective, and a budget frontier — built from the ground up for a
+        general audience: when a cheap closed-form merge is enough, and when it <em>pays</em> to spend real
+        computation on end-to-end distillation.</p>
     </section>
 
     <section id="watch" class="container section" style="padding-top:14px;">
@@ -73,17 +73,17 @@
           <h4>Chapters</h4>
           <ul>
             <li><button data-t="0"><span>0:00</span> Introduction</button></li>
-            <li><button data-t="20"><span>0:20</span> I · What is model merging?</button></li>
-            <li><button data-t="70"><span>1:10</span> Why naive merging fails</button></li>
-            <li><button data-t="99"><span>1:39</span> II · Weights are the wrong unit</button></li>
-            <li><button data-t="126"><span>2:06</span> Match functions, not weights</button></li>
-            <li><button data-t="163"><span>2:43</span> III · One objective explains the field</button></li>
-            <li><button data-t="210"><span>3:30</span> How E2E-Merge optimizes it</button></li>
-            <li><button data-t="248"><span>4:08</span> IV · Does it work?</button></li>
-            <li><button data-t="284"><span>4:44</span> Wins more as tasks grow</button></li>
-            <li><button data-t="323"><span>5:23</span> Fast &amp; one-time</button></li>
-            <li><button data-t="348"><span>5:48</span> V · Scope &amp; meaning</button></li>
-            <li><button data-t="371"><span>6:11</span> Takeaway</button></li>
+            <li><button data-t="20"><span>0:21</span> I · What is model consolidation?</button></li>
+            <li><button data-t="66"><span>1:06</span> Two regimes, two budgets</button></li>
+            <li><button data-t="108"><span>1:49</span> II · One shared objective</button></li>
+            <li><button data-t="147"><span>2:28</span> The budget trade-off</button></li>
+            <li><button data-t="183"><span>3:04</span> III · Data budget</button></li>
+            <li><button data-t="219"><span>3:39</span> Compute budget</button></li>
+            <li><button data-t="251"><span>4:11</span> Memory budget</button></li>
+            <li><button data-t="283"><span>4:44</span> IV · When each wins</button></li>
+            <li><button data-t="320"><span>5:20</span> At full budget</button></li>
+            <li><button data-t="359"><span>5:59</span> V · Why &amp; scope</button></li>
+            <li><button data-t="393"><span>6:33</span> Takeaway</button></li>
           </ul>
           <p class="chap-note">Captions are on by default; audio is a synthesized narration. Download:
             <a href="assets/tutorial.mp4" download>MP4</a> · <a href="assets/tutorial.srt" download>SRT</a></p>
@@ -96,12 +96,12 @@
       <h2 style="margin-top:8px;">What the tutorial covers</h2>
       <article class="card">
         <div class="takeaways">
-          <div class="tk"><div class="tk-n">1</div><p><b>Why naive merging fails.</b> Averaging or adding task
-            vectors makes tasks interfere — every task loses accuracy.</p></div>
-          <div class="tk"><div class="tk-n">2</div><p><b>Match functions, not weights.</b> Make the merged model
-            reproduce each expert's representation on that task's inputs — label-free. RegMean/Fisher/Average are special cases.</p></div>
-          <div class="tk"><div class="tk-n">3</div><p><b>That it works.</b> 94.3% on ViT-L/14 = the fine-tuned
-            models (99.9% recovered); +9.5 points at 20 tasks; a one-time ~13-min merge.</p></div>
+          <div class="tk"><div class="tk-n">1</div><p><b>Two regimes, one objective.</b> Closed-form merging and
+            end-to-end distillation both reproduce each expert on its own inputs — one cheaply, one exactly.</p></div>
+          <div class="tk"><div class="tk-n">2</div><p><b>A budget frontier.</b> Closed-form wins under tight data,
+            compute, or memory; distillation overtakes past ~256 examples/task. No universal winner.</p></div>
+          <div class="tk"><div class="tk-n">3</div><p><b>When it pays.</b> At full budget, 94.3% on ViT-L/14 matches the
+            fine-tuned experts, and the lead grows to +9.5 at 20 tasks — precisely where a one-shot formula struggles.</p></div>
         </div>
         <div class="grid3" style="margin-top:18px;">
           <a class="btn btn-soft" href="index.html"><b>Full project page</b> — figures, tables &amp; analysis</a>
