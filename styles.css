@@ -654,3 +654,13 @@ pre {
     scrollbar-width: thin;
   }
 }
+
+/* --- utility classes (budget-regime rebuild) --- */
+.mono {
+  font-family: "SFMono-Regular", ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
+  letter-spacing: .01em;
+}
+.glass {
+  background: linear-gradient(180deg, rgba(96,165,250,.10), rgba(45,212,191,.05));
+  backdrop-filter: blur(6px);
+}
