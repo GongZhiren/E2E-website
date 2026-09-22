@@ -1,176 +1,176 @@
 1
-00:00:00,600 --> 00:00:07,872
+00:00:00,400 --> 00:00:06,952
 Let's look at a practical question. When you fold many specialized models into one, how much should you spend to do it well?
 
 2
-00:00:08,212 --> 00:00:20,044
+00:00:07,132 --> 00:00:17,836
 The real story here isn't a single method — it's a budget. Sometimes a cheap, one-shot merge is the right call; sometimes it pays to spend real computation. We'll see exactly when.
 
 3
-00:00:20,794 --> 00:00:33,562
+00:00:18,256 --> 00:00:29,584
 Start simple. You take one pre-trained model and fine-tune it separately for many tasks — an expert for everyday photos, one for satellite images, one for digits, and so on.
 
 4
-00:00:33,902 --> 00:00:42,974
+00:00:29,764 --> 00:00:37,876
 They all began from the same checkpoint; they only drifted apart during fine-tuning. That shared origin is what makes combining them possible.
 
 5
-00:00:43,314 --> 00:00:53,706
+00:00:38,056 --> 00:00:47,248
 Serving a whole zoo of experts is expensive, and you often can't retrain one model on everything — the data may be private, or simply gone.
 
 6
-00:00:54,046 --> 00:01:05,734
+00:00:47,428 --> 00:00:58,084
 Model consolidation is the fix: fold those experts back into a single model — same size, same cost — that handles every task, with no joint retraining.
 
 7
-00:01:06,484 --> 00:01:11,812
+00:00:58,504 --> 00:01:03,352
 There are two very different ways to do this, and they cost wildly different amounts.
 
 8
-00:01:12,152 --> 00:01:24,152
+00:01:03,532 --> 00:01:14,548
 The first is closed-form merging. You collect a few statistics from each expert and solve one equation. Methods like RegMean finish in about a minute. Cheap — but it only approximates what you want.
 
 9
-00:01:24,492 --> 00:01:41,076
+00:01:14,728 --> 00:01:29,680
 The second is end-to-end distillation — our E2E-Merge. It repeatedly runs the frozen experts and trains the merged model to reproduce their behavior. Far more expensive, but it optimizes the goal directly.
 
 10
-00:01:41,416 --> 00:01:47,824
+00:01:29,860 --> 00:01:35,404
 So which should you use? That's the whole question — and the honest answer is: it depends on your budget.
 
 11
-00:01:48,574 --> 00:01:54,790
+00:01:35,824 --> 00:01:41,344
 Here's the insight that ties them together. Both regimes are chasing the exact same target.
 
 12
-00:01:55,130 --> 00:02:07,346
+00:01:41,524 --> 00:01:52,300
 For every task, on that task's own inputs, the merged model should produce the same internal representation the expert would. Write that down, and you get one clean objective.
 
 13
-00:02:07,686 --> 00:02:20,454
+00:01:52,480 --> 00:02:04,384
 No labels are needed — the target is the expert's own output. Closed-form merging approximates this objective with a formula; distillation optimizes it directly with gradient descent.
 
 14
-00:02:20,794 --> 00:02:27,058
+00:02:04,564 --> 00:02:10,132
 One goal, two ways to reach it — cheap and approximate, or costly and exact.
 
 15
-00:02:27,808 --> 00:02:37,864
+00:02:10,552 --> 00:02:19,336
 And that's exactly where the trade-off lives. The cheap closed-form solution pays a fixed price: because it only approximates, it leaves a permanent gap.
 
 16
-00:02:38,204 --> 00:02:48,740
+00:02:19,516 --> 00:02:28,924
 Distillation can close that gap — but only if you feed it enough data and enough training steps. With too little of either, it actually does worse than the cheap merge.
 
 17
-00:02:49,080 --> 00:03:03,120
+00:02:29,104 --> 00:02:41,872
 So there is no universal winner. There is a frontier: closed-form is best under tight budgets; distillation pulls ahead once you can afford it. Let's watch that along three axes — data, compute, and memory.
 
 18
-00:03:03,870 --> 00:03:08,550
+00:02:42,292 --> 00:02:46,684
 First, data. How many unlabeled examples per task do you have?
 
 19
-00:03:08,890 --> 00:03:18,490
+00:02:46,864 --> 00:02:55,720
 With very few — say sixty-four or a hundred and twenty-eight — the cheap RegMean merge is simply better. Distillation doesn't have enough to learn from.
 
 20
-00:03:18,830 --> 00:03:31,526
+00:02:55,900 --> 00:03:07,228
 But the lines cross at around two hundred and fifty-six examples. Past that, distillation pulls ahead and keeps climbing — to about eighty-eight and a half percent with a thousand examples per task.
 
 21
-00:03:31,866 --> 00:03:38,682
+00:03:07,408 --> 00:03:13,672
 The lesson: below a couple hundred examples, don't bother with the expensive method — the closed form wins.
 
 22
-00:03:39,432 --> 00:03:43,656
+00:03:14,092 --> 00:03:17,740
 Second, compute — how many training steps you're willing to run.
 
 23
-00:03:43,996 --> 00:03:54,652
+00:03:17,920 --> 00:03:27,328
 Almost all of the benefit arrives early. Just four thousand steps recover about eighty-three percent of the total gain, jumping from eighty-four to over eighty-nine.
 
 24
-00:03:54,992 --> 00:04:03,104
+00:03:27,508 --> 00:03:35,092
 By eight thousand steps you're ninety-nine percent of the way there. The final stretch to twelve thousand adds only a tenth of a point.
 
 25
-00:04:03,444 --> 00:04:10,572
+00:03:35,272 --> 00:03:41,344
 So distillation is a diminishing-returns game — a modest compute budget already captures most of the win.
 
 26
-00:04:11,322 --> 00:04:18,642
+00:03:41,764 --> 00:03:47,836
 Third, memory. The distillation can run block by block, trading peak memory for accuracy.
 
 27
-00:04:18,982 --> 00:04:27,670
+00:03:48,016 --> 00:03:56,104
 Merge just one block at a time and you use under four gigabytes, already reaching eighty-five percent — better than the cheap baseline.
 
 28
-00:04:28,010 --> 00:04:37,202
+00:03:56,284 --> 00:04:04,396
 Group more blocks together and both memory and accuracy climb — up to the full run at about ninety percent and eight gigabytes.
 
 29
-00:04:37,542 --> 00:04:42,822
+00:04:04,576 --> 00:04:08,848
 So even on a modest GPU, you can pick the point on this curve that fits your hardware.
 
 30
-00:04:43,572 --> 00:04:47,004
+00:04:09,268 --> 00:04:12,340
 Put it together, and you get a simple decision rule.
 
 31
-00:04:47,344 --> 00:04:55,792
+00:04:12,520 --> 00:04:20,032
 Use the cheap closed-form merge when data, compute, or memory is tight — or when its approximation is already good enough.
 
 32
-00:04:56,132 --> 00:05:06,620
+00:04:20,212 --> 00:04:29,644
 Use end-to-end distillation when you have enough unlabeled data and offline compute, and the gap to close is large — many experts, or a weaker backbone.
 
 33
-00:05:06,960 --> 00:05:19,488
+00:04:29,824 --> 00:04:41,080
 And to be honest about it: on a language benchmark with a different setup, the cheap RegMean method actually beats distillation. There really is no universal winner — only the right tool for the budget.
 
 34
-00:05:20,238 --> 00:05:26,022
+00:04:41,500 --> 00:04:46,636
 So what happens at the generous end of the budget, where distillation gets everything it needs?
 
 35
-00:05:26,362 --> 00:05:38,578
+00:04:46,816 --> 00:04:57,664
 On eight image tasks with a large vision model, it reaches ninety-four point three percent — essentially the accuracy of the eight separately fine-tuned experts, in a single model.
 
 36
-00:05:38,918 --> 00:05:48,542
+00:04:57,844 --> 00:05:06,628
 And the harder the problem, the more it pays. Push from eight tasks to twenty, and distillation beats the best cheap baseline by nine and a half points.
 
 37
-00:05:48,882 --> 00:05:58,218
+00:05:06,808 --> 00:05:14,896
 The advantage grows with the number of experts, and on weaker backbones — precisely the settings where a one-shot formula struggles most.
 
 38
-00:05:58,968 --> 00:06:04,896
+00:05:15,316 --> 00:05:20,404
 Why does spending that compute help? Because small errors at each layer compound through depth.
 
 39
-00:06:05,236 --> 00:06:17,668
+00:05:20,584 --> 00:05:32,008
 Two methods can look equally accurate layer by layer, yet one ends up more than twice as far from the expert at the output. Only an end-to-end objective sees, and fixes, that final gap.
 
 40
-00:06:18,008 --> 00:06:32,432
+00:05:32,188 --> 00:05:44,908
 A fair warning on scope: this is mostly a vision study, all experts share one pre-trained initialization, and the comparison changes several things at once. The break-even points are guidance, not guarantees.
 
 41
-00:06:33,182 --> 00:06:41,918
+00:05:45,328 --> 00:05:52,888
 So here's the takeaway. Closed-form merging and end-to-end distillation aren't rivals — they're two budget regimes for the same goal.
 
 42
-00:06:42,258 --> 00:06:49,578
+00:05:53,068 --> 00:05:59,644
 Match each expert's behavior. Then choose how hard to work at it by what you can afford — data, compute, and memory.
 
 43
-00:06:49,918 --> 00:07:00,214
+00:05:59,824 --> 00:06:08,872
 The result isn't a universal winner. It's a practical frontier: spend little and get a solid merge, or spend more and approach the original experts.
 
 44
-00:07:00,554 --> 00:07:06,530
+00:06:09,052 --> 00:06:14,380
 The paper and code are coming soon, linked alongside this video. Thanks for watching.
 
