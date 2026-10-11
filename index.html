@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>E2E-Merge · Model Consolidation under Budget</title>
-  <meta name="description" content="Model Consolidation under Budget: From Closed-Form Merging to End-to-End Distillation. When is a cheap closed-form merge enough, and when does end-to-end distillation pay off?">
+  <title>When Does Refinement Pay? · Budgeted Model Consolidation</title>
+  <meta name="description" content="When Does Refinement Pay? A Budgeted Functional View of Model Consolidation. Closed-form merging, Gauss-Newton, block-wise, and end-to-end refinement are budgeted approximations to one functional objective — and a label-free residual predicts when refinement is worth its cost.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
@@ -20,11 +20,11 @@
       </a>
       <nav>
         <a href="#abstract">Abstract</a>
-        <a href="#problem">Problem</a>
+        <a href="#spectrum">Spectrum</a>
         <a href="#objective">Objective</a>
         <a href="#frontier">Frontier</a>
-        <a href="#regime">When each wins</a>
-        <a href="#analysis">Analysis</a>
+        <a href="#residual">Label-free signal</a>
+        <a href="#analysis">Why</a>
         <a href="tutorial.html">Tutorial</a>
       </nav>
       <a class="btn btn-soft btn-sm" href="#resources">Resources</a>
@@ -35,24 +35,25 @@
     <section class="hero container">
       <div class="hero-copy">
         <p class="pill">Under Review · Model Merging</p>
-        <h1>Model Consolidation<br>under Budget</h1>
+        <h1>When Does<br>Refinement Pay?</h1>
         <p class="subtitle">
-          From <strong>closed-form merging</strong> to <strong>end-to-end distillation</strong>. Both fold task experts
-          into one model by optimizing the <em>same</em> functional objective — so the real question isn't which is
-          better, but <strong>when each is worth its cost</strong>.
+          A <strong>budgeted functional view</strong> of model consolidation. Closed-form merging and end-to-end
+          refinement are not rival algorithms but <strong>approximations to one functional objective</strong>, chosen by
+          <em>how faithfully</em> you can afford to preserve expert behavior under a data, compute, and memory budget.
         </p>
         <div class="author-hero">
           <p class="author-hero-names">
-            Zhiren Gong, Tiantong Wang, Zihao Zeng, Yiyang Duan, Chau Yuen, Wei Yang Bryan Lim
+            Zhiren Gong, Tiantong Wang, Zeng Zihao, Yiyang Duan, Ming Xiao, Chau Yuen, Wei Yang Bryan Lim
           </p>
           <p class="author-hero-affils">
             <span>College of Computing and Data Science, Nanyang Technological University</span>
           </p>
         </div>
         <p class="hero-highlight">
-          A cheap closed-form merge wins under tight <strong>data / compute / memory</strong>; end-to-end distillation
-          (<strong>E2E-Merge</strong>) pays off once resources are ample and the structural gap is large — reaching
-          <strong>94.3%</strong> on ViT-L/14, essentially the fine-tuned experts. Not a universal winner — a frontier.
+          A cheap closed-form merge wins under tight <strong>data / compute / memory</strong>; end-to-end refinement
+          (<strong>E2E-Merge</strong>) pays once resources are ample and the closed-form gap is large — up to
+          <strong>+9.5</strong> at 20 experts. And a <strong>label-free residual</strong> read from the merged model
+          predicts the gain in advance, getting <strong>92.9%</strong> of refine-or-stop calls right.
         </p>
         <div class="cta">
           <span class="btn btn-soft" style="opacity:.6;cursor:default">Paper · coming soon</span>
@@ -61,71 +62,92 @@
         </div>
       </div>
       <figure class="card figure-card hero-figure">
-        <img class="hero-radar-img" src="./assets/fig_budget_frontiers.png" alt="Budget frontier: data, iteration, and memory" data-full="./assets/fig_budget_frontiers.png" loading="eager">
-        <figcaption>Figure. The budget frontier — along data, iteration, and memory, the cheaper closed-form merge and end-to-end distillation trade places.</figcaption>
+        <img class="hero-radar-img" src="./assets/fig_overview.png" alt="One functional objective and a representative fidelity ladder; budget changes the winner" data-full="./assets/fig_overview.png" loading="eager">
+        <figcaption>Figure. One objective, a fidelity ladder from parameter metrics to end-to-end refinement — and a budget that changes which rung wins.</figcaption>
       </figure>
     </section>
 
     <section class="container metrics">
-      <article><h3>2 regimes</h3><p>Closed-form merging vs end-to-end distillation</p></article>
-      <article><h3>N = 256</h3><p>Data crossover: distillation overtakes here</p></article>
-      <article><h3>4k steps → 83%</h3><p>Of the total distillation gain, then it saturates</p></article>
-      <article><h3>3.7 → 8 GB</h3><p>Block-wise memory frontier: 85.3% → 90.2%</p></article>
-      <article><h3>up to +9.5</h3><p>Distillation's edge at the full-budget endpoint (20 tasks)</p></article>
+      <article><h3>4 points</h3><p>One spectrum: closed-form → Gauss-Newton → block-wise → end-to-end</p></article>
+      <article><h3>N = 128</h3><p>Data crossover: refinement overtakes the closed-form merge here</p></article>
+      <article><h3>+4.20</h3><p>E2E over RegMean++ at 1024 examples/task (ViT-B/32)</p></article>
+      <article><h3>92.9%</h3><p>Label-free refine-or-stop decision accuracy (70 subsets)</p></article>
+      <article><h3>up to +9.5</h3><p>E2E edge at the full-budget endpoint (ViT-L/14, 20 tasks)</p></article>
     </section>
 
     <section id="abstract" class="container section">
       <h2>Abstract</h2>
       <article class="card">
         <p>
-          Data-assisted model consolidation comes in two computational regimes: <strong>closed-form merging</strong>,
-          which cheaply solves a parameter- or layer-local surrogate, and <strong>end-to-end distillation</strong>, which
-          spends iterative computation to match expert behavior. We study <strong>when each regime is preferable</strong>
-          rather than treating one as universally superior.
+          Model consolidation combines task-specific experts into one deployable model. We frame method choice as deciding
+          <strong>how faithfully to preserve expert behavior within a resource budget</strong>. Inexpensive mergers solve
+          tractable surrogates, while refinement spends data and computation to match expert behavior more directly.
         </p>
         <p>
-          Both are organized around one <strong>task-conditioned functional objective</strong>: on inputs from task <span class="mono">a</span>,
-          one shared model should reproduce expert <span class="mono">a</span>. Our analysis separates the <em>fixed
-          surrogate gap</em> of closed-form regression from the <em>data- and compute-dependent errors</em> of distillation.
-          Locally, RegMean is the exact optimizer of an expert-centered, layer-wise, isotropic surrogate; dropping
-          cross-layer coupling incurs an exact quadratic excess loss. Under smoothness and Polyak–Łojasiewicz conditions,
-          iterative refinement reduces the functional error with compute and admits a <strong>break-even budget</strong>.
+          A task-indexed <strong>functional objective</strong> separates the realized gap left by a low-cost merge from
+          refinement's finite-data and optimization errors. Local quadratic analysis gives <strong>exact excess-loss
+          formulas</strong> for metric mismatch, restricted updates, and omitted cross-layer coupling, and combining these
+          gaps yields a condition for the budget-dependent transition to higher-fidelity refinement.
         </p>
         <p>
-          Existing experiments map three slices of the resulting frontier — across <strong>data, compute, and memory</strong>.
-          The evidence supports a <strong>regime view</strong>: closed-form merging is preferable under severe constraints
-          and a tight surrogate; end-to-end distillation pays when unlabeled data and offline computation are available and
-          the structural gap is large.
+          Across six data budgets with five paired ViT-B/32 runs each, RegMean++ leads at 32–64 examples per task, whereas
+          representation distillation leads from 128 onward and reaches a <strong>4.20-point advantage at 1024</strong>.
+          Across all 70 four-task subsets, a <strong>label-free residual</strong> predicts how much refinement will help and
+          achieves <strong>92.9% leave-one-task-out decision accuracy</strong> at a 2.5-point utility threshold.
+          Gauss–Newton and block-wise refinement supply intermediate compute and memory tradeoffs, and a three-seed Flan-T5
+          sweep shows a complementary regime in which closed form wins at all four data budgets.
         </p>
       </article>
     </section>
 
-    <section id="problem" class="container section">
-      <h2>The Setup · Two Regimes</h2>
+    <section id="spectrum" class="container section">
+      <h2>One Objective · A Spectrum of Approximations</h2>
+      <p class="section-lead">
+        Merging and distillation are not two camps but <strong>operating points on one functional-fidelity spectrum</strong>.
+        Each rung restores more of the deployed function — target metric, update scope, cross-layer geometry, nonlinear
+        trajectory — at a higher cost in data, compute, and memory.
+      </p>
       <div class="grid2">
         <article class="card">
-          <h3>Closed-form merging — cheap</h3>
+          <h3>Closed-form endpoint — cheapest</h3>
           <p>
             Collect a few statistics and solve once. <strong>RegMean / RegMean++</strong> regress per-layer activations in
-            closed form — on the order of a minute after one pass. Negligible optimization error, but a <strong>fixed
-            structural gap</strong>: it only approximates the objective.
+            closed form — a statistics pass plus sequential solves, 26 s at N = 256. Negligible optimization error, but a
+            <strong>fixed structural gap</strong>: it only approximates the objective.
           </p>
         </article>
         <article class="card">
-          <h3>End-to-end distillation — costly</h3>
+          <h3>Current-point quadratic — intermediate</h3>
           <p>
-            <strong>E2E-Merge</strong> repeatedly queries the frozen experts and, on their own unlabeled inputs, makes one
-            shared student reproduce each expert's representation. It <strong>samples the objective directly</strong> — but
-            pays finite-data and optimization error, and real compute.
+            <strong>GN-Merge</strong> relinearizes the objective at the current merge and solves a damped Gauss–Newton
+            system matrix-free, restoring current-point cross-layer coupling. Six steps from RegMean++ lift accuracy
+            <strong>84.3 → 86.9</strong> without a full training trajectory.
+          </p>
+        </article>
+        <article class="card">
+          <h3>Block-wise — memory-controlled</h3>
+          <p>
+            Train consecutive block groups from the input side while freezing and caching the prefix. Group size is an
+            explicit <strong>memory–fidelity dial</strong>: on ViT-B/32 it spans <strong>85.3%@3.7 GiB → 89.8%@5.4 GiB</strong>,
+            and even one block beats the closed-form reference.
+          </p>
+        </article>
+        <article class="card">
+          <h3>End-to-end endpoint — highest fidelity</h3>
+          <p>
+            <strong>E2E-Merge</strong> drops the layer-local surrogate and optimizes the task-indexed representation
+            objective directly — task-arithmetic init, experts frozen, stop-gradient targets, all student weights updated.
+            It samples the objective exactly, but pays finite-data and optimization error.
           </p>
         </article>
       </div>
       <article class="card dual-insight">
-        <h3>Same goal, different cost</h3>
+        <h3>Same goal, different budget</h3>
         <p>
-          Model consolidation folds several experts — fine-tuned from a shared checkpoint — into one model, with no joint
-          retraining. Both regimes chase the same thing; they just spend a different budget to get there. So the useful
-          question is the <strong>frontier</strong>: how much accuracy each buys per unit of data, compute, and memory.
+          Every point returns <strong>one shared encoder</strong> — no learned router, no task-specific module, and the same
+          per-example inference cost. They chase the same functional target; they just spend a different budget to get there.
+          So the useful question is not which merger is best, but <strong>which level of functional fidelity is worth its
+          cost</strong>.
         </p>
       </article>
     </section>
@@ -142,22 +164,22 @@
           <div>
             <h3>Closed-form <em>approximates</em> F</h3>
             <ul>
-              <li>RegMean is the <strong>exact optimizer</strong> of a layer-wise, first-order, isotropic surrogate of F.</li>
-              <li>Fisher merging is its diagonal analogue; averaging ignores the geometry entirely.</li>
-              <li>Dropping cross-layer coupling costs an <strong>exact quadratic excess</strong> — a fixed structural gap.</li>
+              <li>RegMean is the <strong>exact optimizer</strong> of an expert-centered, layer-wise, first-order surrogate of F once its downstream metric becomes a shared scaled identity.</li>
+              <li>Dropping the off-diagonal blocks costs an <strong>exact quadratic excess</strong> <span class="mono">½‖E Δ_D‖²_{H⁻¹}</span> — a fixed structural gap.</li>
+              <li>Restricting updates to a subspace loses the <span class="mono">H</span>-energy of the full solution outside it.</li>
             </ul>
           </div>
           <div>
-            <h3>Distillation <em>samples</em> F</h3>
+            <h3>Refinement <em>samples</em> F</h3>
             <ul>
               <li>E2E-Merge minimizes F directly by gradient descent, from a task-arithmetic init, teachers frozen.</li>
-              <li>Under smoothness + PL, error contracts geometrically — with a computable <strong>break-even budget</strong>.</li>
-              <li>Distillation beats the closed-form reference once <span class="mono">2εₙ + δ_K &lt; Δ_surrogate</span>.</li>
+              <li>Under smoothness + a Polyak–Łojasiewicz condition, error contracts geometrically — with a computable <strong>break-even budget</strong>.</li>
+              <li>It beats the closed-form reference once <span class="mono">2εₙ + δ_K &lt; Δ_CF</span>: data error plus optimization error below the realized merge gap.</li>
             </ul>
           </div>
         </div>
-        <p class="note">Representation matching supervises the full shared representation; logit distillation only controls
-          directions the task heads can see — a separate design axis.</p>
+        <p class="note">Representation matching supervises the full shared space; logit / KL matching only controls the
+          directions each task's text-prototype head can see — a separate design axis from closed-form-vs-iterative.</p>
       </article>
     </section>
 
@@ -166,115 +188,143 @@
       <div class="grid3">
         <article class="card stat-card">
           <h3>Data budget</h3>
-          <p>Closed-form wins at <strong>64–128</strong> examples/task; distillation overtakes at <strong>256+</strong>.</p>
-          <p class="mono" style="color:var(--ink3)">256 ex: 86.1 (E2E) vs 84.4 (RegMean++)</p>
+          <p>Closed-form wins at <strong>32–64</strong> examples/task; refinement overtakes at <strong>128</strong> and widens through 1024.</p>
+          <p class="mono" style="color:var(--ink3)">+0.68 → +2.14 → +3.42 → +4.20 (128→1024)</p>
         </article>
         <article class="card stat-card">
           <h3>Compute budget</h3>
-          <p><strong>4k</strong> steps recover <strong>83%</strong> of the gain (89.2); it saturates by 8k (90.1 → 90.2).</p>
-          <p class="mono" style="color:var(--ink3)">RegMean++ reference: 84.2</p>
+          <p>At N = 256, E2E clears RegMean++ at the <strong>first 500-step point (56 s)</strong>; gains taper after 2k.</p>
+          <p class="mono" style="color:var(--ink3)">84.2 (26 s) → 86.5 (8k, 533 s)</p>
         </article>
         <article class="card stat-card">
           <h3>Memory budget</h3>
-          <p>Block-wise merge spans <strong>85.3%@3.7GB → 89.8%@5.4GB → 90.2%@~8GB</strong>.</p>
+          <p>Block-wise spans <strong>85.3%@3.7GiB → 89.8%@5.4GiB → 90.2%@~8GiB</strong> (full).</p>
           <p class="mono" style="color:var(--ink3)">even one block beats RegMean++</p>
         </article>
       </div>
 
       <article class="card full-width-table-card">
-        <h3>Data-budget crossover — ViT-B/32, average accuracy (%)</h3>
+        <h3>Data-budget crossover — ViT-B/32, average accuracy (%), five paired subsets per point</h3>
         <div class="table-scroll">
           <table class="wide-table compact">
             <thead>
-              <tr><th>Distinct examples / task</th><th>64</th><th>128</th><th>256</th><th>512</th><th>1024</th></tr>
+              <tr><th>Distinct examples / task</th><th>32</th><th>64</th><th>128</th><th>256</th><th>512</th><th>1024</th></tr>
             </thead>
             <tbody>
-              <tr><td>RegMean++ (closed-form)</td><td><strong>83.3</strong></td><td><strong>83.9</strong></td><td>84.4</td><td>84.3</td><td>84.5</td></tr>
-              <tr><td>E2E-Merge (distillation)</td><td>81.3</td><td>83.5</td><td><strong>86.1</strong></td><td><strong>87.7</strong></td><td><strong>88.5</strong></td></tr>
+              <tr><td>RegMean++ (closed-form)</td><td><strong>82.5</strong></td><td><strong>83.5</strong></td><td>84.0</td><td>84.4</td><td>84.3</td><td>84.5</td></tr>
+              <tr><td>E2E-Merge (refinement)</td><td>78.7</td><td>82.3</td><td><strong>84.6</strong></td><td><strong>86.4</strong></td><td><strong>87.7</strong></td><td><strong>88.6</strong></td></tr>
             </tbody>
           </table>
         </div>
-        <p class="note">The ordering reverses at 256 examples — below it, the cheap merge is simply the better bet.</p>
+        <p class="note">The ordering reverses at 128 examples and holds in every one of the five paired subsets from there on — below it, the cheap merge is simply the better bet.</p>
       </article>
 
       <figure class="card figure-card" style="margin-top:16px;">
-        <img class="pipeline-hero-img" src="./assets/fig_budget_frontiers.png" alt="Data, iteration, and memory budget frontiers" data-full="./assets/fig_budget_frontiers.png" loading="lazy">
-        <figcaption>Figure. Three one-dimensional slices of the frontier — data, iteration, and memory — from the same ViT-B/32 measurements.</figcaption>
+        <img class="pipeline-hero-img" src="./assets/fig_budget_frontiers.png" alt="Data, compute, and memory budget frontiers on ViT-B/32" data-full="./assets/fig_budget_frontiers.png" loading="lazy">
+        <figcaption>Figure. Three one-dimensional slices of the frontier — data, compute, and memory — from the same ViT-B/32 measurements. Left-panel error bars are over five paired subsets.</figcaption>
       </figure>
     </section>
 
-    <section id="regime" class="container section">
-      <h2>When Each Wins</h2>
-      <div class="grid2">
-        <article class="card">
-          <h3>Use closed-form merging when…</h3>
-          <ul>
-            <li>data is scarce (≲ a couple hundred examples/task), or</li>
-            <li>compute / memory is tight, or</li>
-            <li>the local surrogate is already tight (small structural gap).</li>
-          </ul>
-          <p class="note">A counter-example that proves the point: on a Flan-T5 GLUE probe, closed-form <strong>RegMean (83.0)</strong>
-            beats iterative E2E (81.9) — different functional readouts favor the cheap regime.</p>
+    <section id="residual" class="container section">
+      <h2>A Label-Free Signal for Refinement</h2>
+      <p class="section-lead">
+        The regime condition becomes an <strong>actionable rule</strong>: before spending any end-to-end budget, measure the
+        closed-form model's remaining functional discrepancy. The merged model's own <strong>held-out squared residual</strong>
+        — no labels, no test data — predicts how much refinement will actually help.
+      </p>
+      <figure class="card figure-card">
+        <img src="./assets/fig_residual_predictor.png" alt="Residual predicts future E2E gain; signal survives task adjustment; generalizes to held-out tasks" data-full="./assets/fig_residual_predictor.png" loading="lazy">
+        <figcaption>Figure. Across all 70 four-task subsets of the ViT-B/32 pool, the label-free residual tracks the eventual E2E gain (ρ = 0.96), survives additive task adjustment (ρ = 0.63), and generalizes to held-out tasks at the lowest RMSE.</figcaption>
+      </figure>
+      <div class="grid3">
+        <article class="card stat-card">
+          <h3>It predicts the gain</h3>
+          <p>Across the full 70-subset enumeration, Spearman <strong>ρ = 0.96</strong>, and <strong>0.63</strong> after additive task adjustment.</p>
         </article>
-        <article class="card">
-          <h3>Use end-to-end distillation when…</h3>
-          <ul>
-            <li>you have enough unlabeled data (≳ 256 examples/task) and offline compute, and</li>
-            <li>the structural gap is large — many experts, or a weaker backbone.</li>
-          </ul>
-          <p class="note">The distillation edge grows with expert count — <strong>+2.6 → +6.0</strong> from 2 to 8 experts,
-            and <strong>+13.7</strong> at 20 — and on weaker backbones.</p>
+        <article class="card stat-card">
+          <h3>It beats the alternatives</h3>
+          <p>Leave-one-task-out: <strong>0.265-pt RMSE</strong> and <strong>92.9%</strong> refine-or-stop decisions, vs 73.9% from initial accuracy and 57.5% from task-vector cosine.</p>
+        </article>
+        <article class="card stat-card">
+          <h3>It is robust</h3>
+          <p>The signal persists on an independent slice, with as few as <strong>16 examples/task</strong>, and across nine backbone / task-count settings at <strong>ρ = 0.992</strong>.</p>
         </article>
       </div>
-      <article class="card full-width-table-card">
-        <h3>Full-budget endpoints — best closed-form reference vs E2E-Merge (avg accuracy %)</h3>
-        <div class="table-scroll">
-          <table class="wide-table compact">
-            <thead>
-              <tr><th>Setting</th><th>Closed-form ref</th><th>E2E-Merge</th><th>Δ</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>ViT-B/32 · 8 tasks</td><td>84.2 (RegMean++)</td><td><strong>89.8</strong></td><td>+5.6</td></tr>
-              <tr><td>ViT-B/16 · 8 tasks</td><td>87.3 (RegMean++)</td><td><strong>92.0</strong></td><td>+4.7</td></tr>
-              <tr><td>ViT-L/14 · 8 tasks</td><td>90.9 (RegMean++)</td><td><strong>94.3</strong></td><td>+3.3</td></tr>
-              <tr><td>ViT-L/14 · 20 tasks</td><td>83.4 (Iso-C)</td><td><strong>92.9</strong></td><td>+9.5</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="note">At the full budget, the merged model reaches the individual fine-tuned accuracy on ViT-L/14 (94.3 ≈ 94.3).</p>
+      <article class="card dual-insight">
+        <h3>Triage before you train</h3>
+        <p>
+          The residual turns the qualitative regime condition into an objective-aligned, label-free triage rule: fit the cheap
+          merge, read its functional residual, and <strong>only pay for refinement where the residual says it will pay back</strong>.
+        </p>
       </article>
     </section>
 
     <section id="analysis" class="container section">
-      <h2>Why · Mechanism</h2>
+      <h2>When Each Wins · Why</h2>
       <div class="grid2">
-        <figure class="card figure-card">
-          <img src="./assets/fig_compound.png" alt="Layer-wise residuals do not determine final error" data-full="./assets/fig_compound.png" loading="lazy">
-          <figcaption>Figure. Layer-wise residuals are nearly tied (2.46 vs 2.11), yet the final representation error differs 2.4× (0.55 vs 0.23) — and that ordering matches accuracy.</figcaption>
-        </figure>
         <article class="card">
-          <h3>Per-layer optimality ≠ end-to-end optimality</h3>
-          <p>
-            A closed-form solver can be near-optimal at every layer and still land far from each expert at the output,
-            because small residuals <strong>compound</strong> through depth. Distillation controls what actually reaches
-            the output — which is exactly what its extra compute buys, and why the gap widens with more experts and
-            weaker backbones.
-          </p>
-          <h3>Efficiency, honestly</h3>
-          <p>
-            We report cost as a <strong>resource vector</strong> (data, updates, memory, time) with Pareto dominance —
-            not a fragile accuracy-per-minute scalar. The point is the frontier, not a single winner.
-          </p>
+          <h3>Use closed-form merging when…</h3>
+          <ul>
+            <li>data is scarce (≲ a hundred examples/task), or</li>
+            <li>compute / memory is tight, or</li>
+            <li>the local surrogate is already tight (small structural gap).</li>
+          </ul>
+          <p class="note">A counter-example that proves the point: across a three-seed Flan-T5 GLUE sweep, closed-form
+            <strong>RegMean wins all 12 paired runs</strong> against iterative output distillation (by 0.76–0.94 pt), and both
+            beat task arithmetic (79.0) and TIES (80.2). Different functional readouts favor the cheap regime.</p>
+        </article>
+        <article class="card">
+          <h3>Use end-to-end refinement when…</h3>
+          <ul>
+            <li>you have enough unlabeled data (≳ 128 examples/task) and offline compute, and</li>
+            <li>the structural gap is large — many experts, or a weaker backbone.</li>
+          </ul>
+          <p class="note">The refinement edge grows with consolidation load — <strong>+2.6 → +4.4 → +6.0</strong> from 2 to 6 to
+            8 experts, and <strong>+13.7</strong> at 20 — and is larger on smaller backbones for the same 20 tasks.</p>
         </article>
       </div>
-      <figure class="card figure-card" style="margin-top:16px;">
-        <img src="./assets/fig_scaling.png" alt="Distillation gain grows with expert count" data-full="./assets/fig_scaling.png" loading="lazy">
-        <figcaption>Figure. The distillation advantage over closed-form grows with the number of merged experts.</figcaption>
-      </figure>
+
+      <article class="card full-width-table-card">
+        <h3>High-accuracy endpoints — best closed-form reference vs E2E-Merge (avg accuracy %)</h3>
+        <div class="table-scroll">
+          <table class="wide-table compact">
+            <thead>
+              <tr><th>Setting</th><th>Closed-form ref</th><th>E2E-Merge</th><th>Δ</th><th>Expert avg.</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>ViT-B/32 · 8 tasks</td><td>84.2 (RegMean++)</td><td><strong>89.9</strong></td><td>+5.7</td><td>90.4</td></tr>
+              <tr><td>ViT-B/16 · 8 tasks</td><td>87.3 (RegMean++)</td><td><strong>91.9</strong></td><td>+4.6</td><td>92.4</td></tr>
+              <tr><td>ViT-L/14 · 8 tasks</td><td>90.9 (RegMean++)</td><td><strong>94.2</strong></td><td>+3.3</td><td>94.3</td></tr>
+              <tr><td>ViT-L/14 · 20 tasks</td><td>83.4 (Iso-C)</td><td><strong>92.9</strong></td><td>+9.5</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">At the high-fidelity endpoint, the merged model essentially matches the individual fine-tuned experts on ViT-L/14 (94.2 ≈ 94.3).</p>
+      </article>
+
+      <div class="grid2" style="margin-top:16px;">
+        <figure class="card figure-card">
+          <img src="./assets/fig_compound.png" alt="Layer-wise residuals do not determine final error" data-full="./assets/fig_compound.png" loading="lazy">
+          <figcaption>Figure. Per-layer residuals are nearly tied, yet the final representation error differs sharply (0.93 / 0.60 / 0.20 for Task Arithmetic / RegMean++ / E2E) — and that ordering matches accuracy (67.6 / 84.2 / 90.2).</figcaption>
+        </figure>
+        <figure class="card figure-card">
+          <img src="./assets/fig_scaling.png" alt="Refinement gain grows with the number of merged experts" data-full="./assets/fig_scaling.png" loading="lazy">
+          <figcaption>Figure. The refinement advantage over closed-form grows with consolidation load — the number of merged experts.</figcaption>
+        </figure>
+      </div>
+
       <article class="card">
+        <h3>Per-layer optimality ≠ end-to-end optimality</h3>
+        <p>
+          A closed-form solver can be near-optimal at every layer and still land far from each expert at the output, because
+          small residuals <strong>compound</strong> through depth. Refinement controls what actually reaches the output — which
+          is exactly what its extra compute buys, and why the gap widens with more experts and weaker backbones.
+          A matched-target control confirms the mechanism: representation supervision adds <strong>1.6–2.2 points</strong> over
+          the strongest logit control, while the restricted-coefficient gradient merger AdaMerging reaches only 82.6%.
+        </p>
         <h3>Honest scope</h3>
         <ul>
-          <li>A <strong>representative, not exhaustive</strong> comparison: RegMean++-vs-E2E changes target, trajectory, solver and compute at once — it measures an overall <em>regime</em> gap, not one isolated component.</li>
+          <li>The endpoint comparison measures a <strong>regime</strong> gap: it changes target, trajectory, solver, and compute at once, by design.</li>
           <li>CLIP-centric; all experts share a pre-trained init. The Flan-T5 probe uses different functional readouts.</li>
           <li>Break-even results are conditional local bounds, not AdamW convergence guarantees. The method is label-free but not data-free.</li>
         </ul>
@@ -295,8 +345,8 @@
         <article class="card resource-card">
           <h3>Tutorial</h3>
           <p>
-            A narrated, animated <a href="tutorial.html">~7-minute video tour</a> — the two regimes, the shared
-            objective, and the budget frontier, built for a general audience.
+            A narrated, animated <a href="tutorial.html">video tour</a> — one objective, the fidelity spectrum, and the
+            budget frontier, built for a general audience.
           </p>
         </article>
       </div>
@@ -313,7 +363,7 @@
 
   <footer class="footer">
     <div class="container">
-      <p>E2E-Merge · Model Consolidation under Budget · official project page.</p>
+      <p>When Does Refinement Pay? · A Budgeted Functional View of Model Consolidation · official project page.</p>
     </div>
   </footer>
 

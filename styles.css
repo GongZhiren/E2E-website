@@ -664,3 +664,13 @@ pre {
   background: linear-gradient(180deg, rgba(96,165,250,.10), rgba(45,212,191,.05));
   backdrop-filter: blur(6px);
 }
+
+/* intro lead paragraph under a section heading (added for NAACL revision) */
+.section-lead {
+  max-width: 880px;
+  margin: 2px 0 20px;
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.62;
+}
+.section-lead strong { color: var(--ink); }

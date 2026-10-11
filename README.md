@@ -1,8 +1,10 @@
-# E2E-Merge — project page
+# When Does Refinement Pay? — project page
 
-Source for the E2E-Merge project website (GitHub Pages):
+Source for the project website (GitHub Pages):
 https://gongzhiren.github.io/E2E-website/
 
-*Merging Models by Matching Functions (E2E-Merge).* Merge fine-tuned experts into one model by
-matching each expert's function on its own inputs — RegMean / Fisher / averaging are degenerate
-special cases. Paper & code coming soon.
+*When Does Refinement Pay? A Budgeted Functional View of Model Consolidation.*
+Closed-form merging, Gauss-Newton, block-wise, and end-to-end refinement (E2E-Merge) are budgeted
+approximations to one task-indexed functional objective. Exact local excess-loss formulas and a
+label-free residual predictor say when higher-fidelity refinement is worth its data, compute, and
+memory cost. Paper & code coming soon.
