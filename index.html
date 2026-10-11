@@ -62,8 +62,8 @@
         </div>
       </div>
       <figure class="card figure-card hero-figure">
-        <img class="hero-radar-img" src="./assets/fig_overview.png" alt="One functional objective and a representative fidelity ladder; budget changes the winner" data-full="./assets/fig_overview.png" loading="eager">
-        <figcaption>Figure. One objective, a fidelity ladder from parameter metrics to end-to-end refinement — and a budget that changes which rung wins.</figcaption>
+        <img class="hero-radar-img" src="./assets/fig_framework.png" alt="The framework: one task-indexed functional objective, a functional-fidelity spectrum of operating points, and budgeted operating-point selection" data-full="./assets/fig_framework.png" loading="eager">
+        <figcaption>Figure. The framework. One task-indexed functional objective; a fidelity spectrum from parameter-space metrics to end-to-end refinement; and a budget that selects the operating point.</figcaption>
       </figure>
     </section>
 
@@ -107,6 +107,10 @@
         Each rung restores more of the deployed function — target metric, update scope, cross-layer geometry, nonlinear
         trajectory — at a higher cost in data, compute, and memory.
       </p>
+      <figure class="card figure-card">
+        <img src="./assets/fig_endpoints.png" alt="Two computational endpoints: closed-form merging versus end-to-end refinement, with a budget-dependent choice between them" data-full="./assets/fig_endpoints.png" loading="lazy">
+        <figcaption>Figure. The two endpoints. Closed-form merging solves a cheap surrogate; end-to-end refinement queries the frozen experts and matches their representations on unlabeled task inputs. Which one wins is budget-dependent.</figcaption>
+      </figure>
       <div class="grid2">
         <article class="card">
           <h3>Closed-form endpoint — cheapest</h3>
@@ -222,6 +226,11 @@
       <figure class="card figure-card" style="margin-top:16px;">
         <img class="pipeline-hero-img" src="./assets/fig_budget_frontiers.png" alt="Data, compute, and memory budget frontiers on ViT-B/32" data-full="./assets/fig_budget_frontiers.png" loading="lazy">
         <figcaption>Figure. Three one-dimensional slices of the frontier — data, compute, and memory — from the same ViT-B/32 measurements. Left-panel error bars are over five paired subsets.</figcaption>
+      </figure>
+
+      <figure class="card figure-card" style="margin-top:16px;">
+        <img src="./assets/fig_blockwise.png" alt="Block-wise accuracy-memory trade-off on ViT-B/32 and ViT-L/14" data-full="./assets/fig_blockwise.png" loading="lazy">
+        <figcaption>Figure. The memory dial in full. Jointly optimizing more blocks trades peak memory (GiB, annotated) for accuracy — on ViT-B/32 (12 blocks) and ViT-L/14 (24 blocks) — and even one block clears the closed-form reference.</figcaption>
       </figure>
     </section>
 
