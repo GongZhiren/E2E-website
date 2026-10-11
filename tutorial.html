@@ -73,17 +73,17 @@
           <h4>Chapters</h4>
           <ul>
             <li><button data-t="0"><span>0:00</span> Introduction</button></li>
-            <li><button data-t="18"><span>0:18</span> I · What is model consolidation?</button></li>
-            <li><button data-t="59"><span>0:59</span> Two regimes, two budgets</button></li>
-            <li><button data-t="96"><span>1:36</span> II · One shared objective</button></li>
-            <li><button data-t="131"><span>2:11</span> The budget trade-off</button></li>
-            <li><button data-t="162"><span>2:42</span> III · Data budget</button></li>
-            <li><button data-t="194"><span>3:14</span> Compute budget</button></li>
-            <li><button data-t="222"><span>3:42</span> Memory budget</button></li>
-            <li><button data-t="249"><span>4:09</span> IV · When each wins</button></li>
-            <li><button data-t="282"><span>4:42</span> At full budget</button></li>
-            <li><button data-t="315"><span>5:15</span> V · Why &amp; scope</button></li>
-            <li><button data-t="345"><span>5:45</span> Takeaway</button></li>
+            <li><button data-t="20"><span>0:20</span> I · What is model consolidation?</button></li>
+            <li><button data-t="60"><span>1:00</span> II · One shared objective</button></li>
+            <li><button data-t="85"><span>1:25</span> A spectrum of operating points</button></li>
+            <li><button data-t="127"><span>2:07</span> III · When does refinement pay?</button></li>
+            <li><button data-t="158"><span>2:38</span> Data budget</button></li>
+            <li><button data-t="188"><span>3:08</span> Compute budget</button></li>
+            <li><button data-t="213"><span>3:33</span> Memory budget</button></li>
+            <li><button data-t="243"><span>4:02</span> IV · A label-free signal</button></li>
+            <li><button data-t="283"><span>4:42</span> At full budget</button></li>
+            <li><button data-t="318"><span>5:17</span> V · Why &amp; scope</button></li>
+            <li><button data-t="347"><span>5:46</span> Takeaway</button></li>
           </ul>
           <p class="chap-note">Captions are on by default; audio is a synthesized narration. Download:
             <a href="assets/tutorial.mp4" download>MP4</a> · <a href="assets/tutorial.srt" download>SRT</a></p>
@@ -96,12 +96,12 @@
       <h2 style="margin-top:8px;">What the tutorial covers</h2>
       <article class="card">
         <div class="takeaways">
-          <div class="tk"><div class="tk-n">1</div><p><b>Two regimes, one objective.</b> Closed-form merging and
-            end-to-end distillation both reproduce each expert on its own inputs — one cheaply, one exactly.</p></div>
+          <div class="tk"><div class="tk-n">1</div><p><b>One objective, a spectrum.</b> Closed-form merging, Gauss-Newton,
+            block-wise, and end-to-end refinement all approximate one functional objective — cheap and approximate, or costly and exact.</p></div>
           <div class="tk"><div class="tk-n">2</div><p><b>A budget frontier.</b> Closed-form wins under tight data,
-            compute, or memory; refinement overtakes past ~128 examples/task. No universal winner.</p></div>
-          <div class="tk"><div class="tk-n">3</div><p><b>When it pays.</b> At full budget, 94.3% on ViT-L/14 matches the
-            fine-tuned experts, and the lead grows to +9.5 at 20 tasks — precisely where a one-shot formula struggles.</p></div>
+            compute, or memory; refinement overtakes past ~128 examples/task, reaching the fine-tuned experts at full budget.</p></div>
+          <div class="tk"><div class="tk-n">3</div><p><b>Know before you train.</b> A label-free residual from the cheap
+            merge predicts the refinement gain and calls refine-or-stop right ~93% of the time.</p></div>
         </div>
         <div class="grid3" style="margin-top:18px;">
           <a class="btn btn-soft" href="index.html"><b>Full project page</b> — figures, tables &amp; analysis</a>
