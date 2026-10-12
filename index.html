@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>When Does Refinement Pay? · Budgeted Model Consolidation</title>
-  <meta name="description" content="When Does Refinement Pay? A Budgeted Functional View of Model Consolidation. Closed-form merging, Gauss-Newton, block-wise, and end-to-end refinement are budgeted approximations to one functional objective — and a label-free residual predicts when refinement is worth its cost.">
+  <title>Model Consolidation: When Does Refinement Pay?</title>
+  <meta name="description" content="Model Consolidation: When Does Refinement Pay? Closed-form merging, Gauss-Newton, block-wise, and end-to-end refinement are budgeted approximations to one functional objective — and a label-free residual predicts when refinement is worth its cost.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
@@ -242,8 +242,8 @@
         — no labels, no test data — predicts how much refinement will actually help.
       </p>
       <figure class="card figure-card">
-        <img src="./assets/fig_residual_predictor.png" alt="Residual predicts future E2E gain; signal survives task adjustment; generalizes to held-out tasks" data-full="./assets/fig_residual_predictor.png" loading="lazy">
-        <figcaption>Figure. Across all 70 four-task subsets of the ViT-B/32 pool, the label-free residual tracks the eventual E2E gain (ρ = 0.96), survives additive task adjustment (ρ = 0.63), and generalizes to held-out tasks at the lowest RMSE.</figcaption>
+        <img src="./assets/fig_residual_predictor.png" alt="Residual predicts future E2E gain; signal survives task adjustment; generalizes to held-out tasks; transfers across backbones and task counts" data-full="./assets/fig_residual_predictor.png" loading="lazy">
+        <figcaption>Figure. Across all 70 four-task subsets of the ViT-B/32 pool, the label-free residual tracks the eventual E2E gain (ρ = 0.96), survives additive task adjustment (ρ = 0.63), generalizes to held-out tasks at the lowest RMSE, and transfers across nine backbone / task-count settings (ρ = 0.99).</figcaption>
       </figure>
       <div class="grid3">
         <article class="card stat-card">
@@ -322,6 +322,11 @@
         </figure>
       </div>
 
+      <figure class="card figure-card" style="margin-top:16px;">
+        <img src="./assets/fig_tall20_gain_atlas.png" alt="Per-task refinement gains over the strongest non-iterative baseline across the 20 TALL tasks on ViT-L/14" data-full="./assets/fig_tall20_gain_atlas.png" loading="lazy">
+        <figcaption>Figure. Where the 20-task gain comes from. On ViT-L/14, refinement improves <strong>19 of the 20 TALL tasks</strong> over the strongest non-iterative baseline — from +0.3 up to +45.5 (EMNIST), with only Pets slightly down.</figcaption>
+      </figure>
+
       <article class="card">
         <h3>Per-layer optimality ≠ end-to-end optimality</h3>
         <p>
@@ -372,7 +377,7 @@
 
   <footer class="footer">
     <div class="container">
-      <p>When Does Refinement Pay? · A Budgeted Functional View of Model Consolidation · official project page.</p>
+      <p>Model Consolidation: When Does Refinement Pay? · official project page.</p>
     </div>
   </footer>
 
